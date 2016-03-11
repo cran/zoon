@@ -1,5 +1,7 @@
 ## ---- echo = FALSE-------------------------------------------------------
 require(zoon, quietly = TRUE)
+library(knitr)
+opts_chunk$set(out.extra='style="display:block; margin: auto"', fig.align="center", fig.width=6, fig.height=6)
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  # Load zoon
@@ -8,21 +10,18 @@ require(zoon, quietly = TRUE)
 #  # Start building our function
 #  Lorem_ipsum_UK <- function(){
 
-## ---- eval = TRUE--------------------------------------------------------
-# I'm going to use the package 'RCurl' so first I get that
-# using the zoon 'GetPackage' function
-GetPackage('RCurl')
-
 ## ---- eval = FALSE-------------------------------------------------------
-#  # Next I retrieve the data from figshare
-#  URL <- "http://files.figshare.com/2519918/Lorem_ipsum_data.csv"
-#  x <- getURL(URL)
-#  out <- read.csv(textConnection(x))
+#  # First I retrieve the data from figshare
+#  # Here is the URL
+#  URL <- "https://ndownloader.figshare.com/files/2519918"
+#  
+#  # Here is the data
+#  out <- read.csv(URL)
+#  head(out)
 
 ## ---- echo = FALSE, message = FALSE--------------------------------------
-URL <- "http://files.figshare.com/2519918/Lorem_ipsum_data.csv"
-x <- getURL(URL)
-head(read.csv(textConnection(x)))
+URL <- "https://ndownloader.figshare.com/files/2519918"
+head(read.csv(URL))
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  # Keep only Lat Long columns
@@ -39,12 +38,9 @@ head(read.csv(textConnection(x)))
 ## ------------------------------------------------------------------------
 Lorem_ipsum_UK <- function(){
   
-  GetPackage('RCurl')
-  
   # Get data
-  URL <- "http://files.figshare.com/2519918/Lorem_ipsum_data.csv"
-  x <- getURL(URL)
-  out <- read.csv(textConnection(x))
+  URL <- "https://ndownloader.figshare.com/files/2519918"
+  out <- read.csv(URL)
   out <- out[, c("latitude", "longitude")]
   
   # Add in the columns we dont have
@@ -96,13 +92,13 @@ BuildModule(Lorem_ipsum_UK,
 
 ## ---- echo = FALSE-------------------------------------------------------
 URL <- "http://files.figshare.com/2527274/aus_air.rdata"
-load(url(URL))
+load(url(URL, method = 'libcurl'))
 print(ras)
 
 ## ---- eval = FALSE-------------------------------------------------------
 #  # Load in the data
 #  URL <- "http://files.figshare.com/2527274/aus_air.rdata"
-#  load(url(URL)) # The object is called 'ras'
+#  load(url(URL, method = 'libcurl')) # The object is called 'ras'
 #  
 #  # Subset the data according the the variable parameter
 #  ras <- subset(ras, variables)
@@ -113,7 +109,7 @@ print(ras)
 AustraliaAir <- function(variables = 'rhum'){
 
   URL <- "http://files.figshare.com/2527274/aus_air.rdata"
-  load(url(URL)) # The object is called 'ras'
+  load(url(URL, method = 'libcurl')) # The object is called 'ras'
   ras <- subset(ras, variables)
   return(ras)
   
@@ -249,7 +245,8 @@ BuildModule(ClipOccurrence,
                                         'giving (in this order) the minimum',
                                         'longitude, maximum longitude, minimum',
                                         'latitude, maximum latitude.')),
-            dataType = c('presence-only', 'presence/absence', 'abundance',
+            dataType = c('presence-only', 'presence/absence',
+                         'presence/background', 'abundance',
                          'proportion'))
 
 ## ---- warning = FALSE----------------------------------------------------
