@@ -73,8 +73,8 @@ test_that('Basic ChangeWorkflow works', {
   sink(file=ifelse(Sys.info()["sysname"] == "Windows",
                    "NUL",
                    "/dev/null"))
-  w6 <- workflow(AnophelesPlumbeus,
-                 UKBioclim, 
+  w6 <- workflow(NaiveRandomPresence,
+                 NaiveRandomRaster, 
                  Background(n = 70),
                  LogisticRegression,
                  PrintMap,

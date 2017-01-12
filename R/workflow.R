@@ -2,11 +2,11 @@
 #' Run a full workflow.
 #'
 #' This is the main function of zoon. The arguments should specify at least five
-#'   modules, at least one of each type.
-#'   If modules do not have any arguments to be specific (or defaults are being
-#'   used then simply give the names of the module. If arguments are needed 
-#'   give the modules in the form of a function 
-#'   e.g. occurrence = AModule(para1 = 2, para2 = 'detail')
+#' modules, at least one of each type.
+#' If modules do not have any arguments to be specific (or defaults are being
+#' used) then simply give the names of the module. If arguments are needed 
+#' give the modules in the form of a function 
+#' e.g. occurrence = AModule(para1 = 2, para2 = 'detail')
 #'
 #' @param occurrence Occurrence module to be used.
 #' @param covariate  Covariate module to be used.
@@ -17,12 +17,12 @@
 #'  from the online repo. This ensure the analysis is reproducible.
 #'
 #' @return A list with the results of each module and a copy of the
-#'  code used to execute the workflow (what's there now should be source-able
-#'  though I'm sure there is a much neater approach than the one I took - the
-#'  ultimate aim would be a much nicer way of enhancing reproducibility).
+#'  code used to execute the workflow. If the workflow fails a partial
+#'  list is saved to a temporary file for debugging.
 #' @export
 #' @name workflow
 #' @importFrom utils sessionInfo
+#' @importFrom plyr rbind.fill
 #' @examples 
 #'# run a workflow, using the logistic regression model
 #'\dontrun{
@@ -35,8 +35,11 @@
 #'
 #'str(work1, 1)
 #'
-#'work2 <- workflow(UKAnophelesPlumbeus, UKAir, OneHundredBackground,   
-#'           RandomForest, PrintMap)
+#'work2 <- workflow(UKAnophelesPlumbeus,
+#'                  UKAir,
+#'                  OneHundredBackground,   
+#'                  RandomForest,
+#'                  PrintMap)
 #'
 #'}
 
@@ -139,17 +142,27 @@ workflow <- function(occurrence, covariate, process, model, output, forceReprodu
   class(output) <- 'zoonWorkflow'
   
   # whether exiting on error, or successful completion, return this
-  on.exit(return(output))
+  on.exit(expr = {
+    tempf <- tempfile(fileext = '.rdata')
+    save(output, file = tempf)
+    message(paste('The process failed. The partially completed workflow has been',
+              ' saved as a temporary file. Load the partially completed workflow named "output" by',
+              ' using load("',
+              normalizePath(tempf, winslash = '/'), '")',
+              sep = ''))
+  })
   
+
+  # Run the occurrence modules
   tryCatch({
-    occurrence.output <- lapply(occurrenceName, FUN = DoOccurrenceModule, e = e)
-    # Then bind together if the occurrence modules were chained
-    if (identical(attr(occurrence.module, 'chain'), TRUE)){
-      occurrence.output <- list(do.call(rbind, occurrence.output))
-      attr(occurrence.output[[1]], 'call_path') <- list(occurrence = paste('Chain(',
-                                                    paste(lapply(occurrenceName, function(x) x$module),
-                                                          collapse = ', '),
-                                                    ')', sep = ''))
+  occurrence.output <- lapply(occurrenceName, FUN = DoOccurrenceModule, e = e)
+  # Then bind together if the occurrence modules were chained
+  if (identical(attr(occurrence.module, 'chain'), TRUE)){
+    occurrence.output <- list(do.call(rbind.fill, occurrence.output))
+    attr(occurrence.output[[1]], 'call_path') <- list(occurrence = paste('Chain(',
+                                                  paste(lapply(occurrenceName, function(x) x$module),
+                                                        collapse = ', '),
+                                                  ')', sep = ''))
     }
     output$occurrence.output <- occurrence.output
   },  
@@ -158,28 +171,30 @@ workflow <- function(occurrence, covariate, process, model, output, forceReprodu
     }
   )
 
+  # Run to covariate modules
   tryCatch({
     #covariate.output <- lapply(covariateName, function(x) do.call(x$func, x$paras))
     covariate.output <- lapply(covariateName, FUN = DoCovariateModule, e = e)
     if (identical(attr(covariate.module, 'chain'), TRUE)){
+      covariate.output <- CombineRasters(covariate.output)
       covariate.output <- list(do.call(raster::stack, covariate.output))
       attr(covariate.output[[1]], 'call_path') <- list(covariate = paste('Chain(',
-                                                                           paste(lapply(covariateName, function(x) x$module),
-                                                                                 collapse = ', '),
-                                                                           ')', sep = ''))
+                                                                         paste(lapply(covariateName, function(x) x$module),
+                                                                               collapse = ', '),
+                                                                         ')', sep = ''))
     }
     output$covariate.output <- covariate.output
   },  
-    error = function(cond){
-      ErrorModule(cond, 2, e)
-    }
+  error = function(cond){
+    ErrorModule(cond, 2, e)
+  }
   )
-
+  
   # Simply combine data into basic df shape
   # This shape is then input and output of all process modules.
   # Also makes it easy to implement a NULL process
   tryCatch({
-    if(length(covariateName) > 1){    
+    if(length(covariate.output) > 1){    
       data <- lapply(covariate.output, 
                      function(x) ExtractAndCombData(occurrence.output[[1]], x))
     } else {
@@ -199,10 +214,9 @@ workflow <- function(occurrence, covariate, process, model, output, forceReprodu
     output$process.output <- process.output
   },  
     error = function(cond){
-      ErrorModule(cond, 3, e)
+      ErrorModule(cond, 4, e)
     }
   )
-  
   
   # Model module
   tryCatch({
@@ -210,7 +224,7 @@ workflow <- function(occurrence, covariate, process, model, output, forceReprodu
     output$model.output <- model.output
   },  
     error = function(cond){
-      ErrorModule(cond, 4, e)
+      ErrorModule(cond, 5, e)
     }
   )    
   #output module
@@ -224,7 +238,10 @@ workflow <- function(occurrence, covariate, process, model, output, forceReprodu
     output$report <- output.output
   },  
     error = function(cond){
-      ErrorModule(cond, 5, e)
+      ErrorModule(cond, 6, e)
     }
   )
+  
+  on.exit()
+  return(output)
 }

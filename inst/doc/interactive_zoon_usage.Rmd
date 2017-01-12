@@ -1,9 +1,9 @@
 ---
 title: "Interactive zoon usage (for developers)"
 author: "Tim Lucas"
-date: "2016-06-06"
+date: "2016-11-23"
 output:
-  rmarkdown::html_vignette:
+  html_document:
     toc: yes
     keep_md: yes
 vignette: >
@@ -35,7 +35,11 @@ w <- workflow(UKAnophelesPlumbeus, UKAir, OneHundredBackground, LogisticRegressi
 ```
 
 ```
-## Warning in OneHundredBackground(.data = structure(list(df = structure(list(: There are fewer than 100 cells in the environmental raster.
+## Occurrence data does not have a "crs" column, zoon will assume it is in the same projection as the covariate data
+```
+
+```
+## There are fewer than 100 cells in the environmental raster.
 ## Using all available cells (81) instead
 ```
 
@@ -99,6 +103,10 @@ We have to run `ExtractAndCombData`. This combines the occurrence and raster dat
 data <- ExtractAndCombData(oc, cov)
 ```
 
+```
+## Occurrence data does not have a "crs" column, zoon will assume it is in the same projection as the covariate data
+```
+
 Next run the process and model modules. To chain process models, simply run each in turn with the output of one going into the next. The simple way to run model modules is to use the module function as below. If crossvalidation is important then you need to run the modules slightly differently (see below).
 
 ```r
@@ -106,7 +114,7 @@ proc <- OneHundredBackground(data)
 ```
 
 ```
-## Warning in OneHundredBackground(data): There are fewer than 100 cells in the environmental raster.
+## There are fewer than 100 cells in the environmental raster.
 ## Using all available cells (81) instead
 ```
 
