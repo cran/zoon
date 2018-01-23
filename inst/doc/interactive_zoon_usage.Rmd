@@ -4,8 +4,13 @@ author: "Tim Lucas"
 date: "2016-11-23"
 output:
   html_document:
-    toc: yes
     keep_md: yes
+    css: zoon.css
+    theme: lumen
+    toc: yes
+    toc_float:
+      collapsed: no
+      toc_depth: 4
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{Interactive zoon usage}
@@ -14,21 +19,20 @@ vignette: >
 
 
 
-# Using zoon modules interactively.
+## Using zoon modules interactively.
 
-While the point of zoon is to run full workflows which are then reproducible, during development of modules it can be useful to run individual modules in the same way you would run normal R functions. 
+While the point of `zoon` is to run full workflows which are then reproducible, during the development of modules it can be useful to run individual modules in the same way you would run normal R functions. 
 
 It is not entirely simple to do this, so this vignette just clarifies how. 
 
-First load packages. You need to explicitely load Dismo as we are now going to use Dismo functions outside the zoon environment.
+First, load packages. You need to explicitely load `dismo` as we are now going to use `dismo` functions outside of the `zoon` environment.
 
 ```r
 library(dismo)
 library(zoon)
 ```
 
-This is the workflow we will run. It might be worth running it here to make sure there are no problems. 
-
+This is the `workflow` we will run. It might be worth running it here to make sure there are no problems. 
 
 ```r
 w <- workflow(UKAnophelesPlumbeus, UKAir, OneHundredBackground, LogisticRegression, PrintMap)
@@ -45,9 +49,9 @@ w <- workflow(UKAnophelesPlumbeus, UKAir, OneHundredBackground, LogisticRegressi
 
 <img src="interactive_noninteractive-1.png" title="plot of chunk interactive_noninteractive" alt="plot of chunk interactive_noninteractive" style="display:block; margin: auto" style="display: block; margin: auto;" />
 
-It's worth noting that this is a simple workflow. Chaining modules will be fairly easy but depends on the module type. Workflows using list() are likely to not be easy. 
+It's worth noting that this is a simple `workflow`. Chaining modules will be fairly easy but depends on the module type. Workflows using `list()` are likely to not be easy. 
 
-Get the modules from the zoon repository and load them into the working environment.
+Get the modules from the `zoon` repository and load them into the working environmen:.
 
 ```r
 LoadModule('UKAnophelesPlumbeus')
@@ -89,15 +93,15 @@ LoadModule('PrintMap')
 ## [1] "PrintMap"
 ```
  
-Run the data modules. To chain occurrence modules, just `rbind` the resulting dataframes. To chain covariate modules, use `raster::stack` to combine the covariate data.
+Run the data modules. To chain occurrence modules, just `rbind()` the resulting dataframes. To chain covariate modules, use `raster::stack` to combine the covariate data.
 
 ```r
 oc <- UKAnophelesPlumbeus()
+
 cov <- UKAir()
 ```
 
-
-We have to run `ExtractAndCombData`. This combines the occurrence and raster data.
+We have to run `ExtractAndCombData()`. This combines the occurrence and raster data.
 
 ```r
 data <- ExtractAndCombData(oc, cov)
@@ -107,7 +111,7 @@ data <- ExtractAndCombData(oc, cov)
 ## Occurrence data does not have a "crs" column, zoon will assume it is in the same projection as the covariate data
 ```
 
-Next run the process and model modules. To chain process models, simply run each in turn with the output of one going into the next. The simple way to run model modules is to use the module function as below. If crossvalidation is important then you need to run the modules slightly differently (see below).
+Next, we run the process and model modules. To chain process models, simply run each in turn with the output of one going into the next. The simple way to run model modules is to use the module function as below. If crossvalidation is important then you need to run the modules slightly differently (see below).
 
 ```r
 proc <- OneHundredBackground(data)
@@ -132,10 +136,11 @@ out <- PrintMap(model, cov)
 
 <img src="interactive_output-1.png" title="plot of chunk interactive_output" alt="plot of chunk interactive_output" style="display:block; margin: auto" style="display: block; margin: auto;" />
 
+<hr>
+
 ## Cross and external validation
 
-Crossvalidation requires the modules to be run using the function `RunModels` which runs the model on each fold of the crossvalidating data and predicts the remaining data. It also runs a model and predicts any external validation data.
-
+Crossvalidation requires the modules to be run using the function `RunModels()` which runs the model on each fold of the crossvalidating data and predicts the remaining data. It also runs a model and predicts any external validation data.
 
 ```r
 modCrossvalid <- RunModels(proc$df, 'LogisticRegression', list(), environment())
@@ -147,6 +152,10 @@ out <- PrintMap(modelCrossvalid, proc$ras)
 
 <img src="interactive_cross_validation-1.png" title="plot of chunk interactive_cross_validation" alt="plot of chunk interactive_cross_validation" style="display:block; margin: auto" style="display: block; margin: auto;" />
 
+<hr>
+
 ## Running workflows with list.
 
-As mentioned above, workflows using list() are likely to not be easy, but then these aren't particularly required while developing a package. To run workflows using list, it would be best to use `LoadModule` as above and then run through the `workflow` source code interactively.
+As mentioned above, workflows using `list()` are likely to not be easy, but then these aren't particularly required while developing a package. To run workflows using `list`, it would be best to use `LoadModule` as above and then run through the `workflow` source code interactively.
+
+<hr>

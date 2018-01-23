@@ -18,7 +18,7 @@ A list of calls
 This function is useful when running simulations and could be used
 with modules that have random number generation internally meaning that
 results from identical runs are different. Replicate gives the same result
-as using list() and repeating the module mulitple times.
+as using list() and repeating the module multiple times.
 }
 \examples{
 # run a workflow, using the logistic regression model
@@ -50,4 +50,3 @@ work1 <- workflow(occurrence = UKAnophelesPlumbeus,
 
 }
 }
-
