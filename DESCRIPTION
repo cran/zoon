@@ -2,8 +2,8 @@ Package: zoon
 Type: Package
 Title: Reproducible, Accessible & Shareable Species Distribution
         Modelling
-Version: 0.6.3
-Date: 2018-01-22
+Version: 0.6.4
+Date: 2019-11-13
 Authors@R: c(person("Tom", "August", role = c("aut", "cre"),
                     email = "tomaug@ceh.ac.uk"),
              person("Tim", "Lucas", role = "aut", comment = c(ORCID = "0000-0003-4694-8107")),
@@ -23,13 +23,13 @@ VignetteBuilder: knitr
 LazyData: TRUE
 URL: https://github.com/zoonproject/zoon
 BugReports: https://github.com/zoonproject/zoon/issues
-RoxygenNote: 6.0.1
+RoxygenNote: 7.0.0
 NeedsCompilation: no
-Packaged: 2018-01-23 01:10:56 UTC; nick
+Packaged: 2019-11-14 10:31:51 UTC; tomaug
 Author: Tom August [aut, cre],
-  Tim Lucas <https://orcid.org/0000-0003-4694-8107> [aut],
+  Tim Lucas [aut] (<https://orcid.org/0000-0003-4694-8107>),
   Nick Golding [aut],
   Emiel van Loon [ctb],
   Greg McInerny [aut]
 Repository: CRAN
-Date/Publication: 2018-01-23 16:35:02 UTC
+Date/Publication: 2019-11-14 11:00:02 UTC
